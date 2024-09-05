@@ -1,0 +1,20 @@
+<li class="d-flex align-items-center py-1 {{#active}} active {{/active}}">
+
+    <a href="{{{url}}}" class="line-clamp-2 {{{class}}}">{{{name}}}</a>
+
+    {{^visible}}
+        <div class="ml-auto">
+            <div class="badge badge-warning rounded-circle p-2 m-1"
+                data-toggle="tooltip" data-html="true" data-placement="right"
+                title="{{#str}} hiddenfromstudents {{/str}}">
+                <i class="fa-solid fa-eye-slash"
+                ></i>
+            </div>
+            <div class="sr-only">{{#str}} hiddenfromstudents {{/str}}</div>
+        </div>
+    {{/visible}}
+
+    {{#visible}}
+        {{{progress}}}
+    {{/visible}}
+</li>

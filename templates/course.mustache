@@ -1,0 +1,44 @@
+{{!
+    @template courses
+}}
+
+<div class="d-flex">
+    {{! Years. }}
+    {{#hasyears}}
+    <hr>
+    Academic year:
+        <a href="{{mainurl}}" class="mr-2">Current</a>
+        {{#year}}
+        <a href="{{url}}" class="mr-2">{{{name}}}</a>
+        {{/year}}
+    <hr>
+    {{/hasyears}}
+
+    {{! Courses dropdown. }}
+    <div class="ml-auto">
+      <div class="dropdown">
+        <button class="btn btn-sm dropdown-toggle" type="button" id="coursejump" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Jump to
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="coursejump">
+        {{#course}}
+          <a class="dropdown-item line-clamp-2" href="#{{id}}">{{{coursename}}}</a>
+        {{/course}}
+        </div>
+      </div>
+    </div>
+
+</div>
+
+{{#course}}
+<div id="{{id}}" class="pb-4">
+    <h3 class="d-flex align-items-center pb-4">
+        <div class="rounded-circle mr-2 bg-dark" style="height: 3rem; width: 3rem; background-image: url('{{image}}');"></div>
+        <a href="{{{url}}">{{{coursename}}}</a>
+    </h3>
+
+    {{#mod}}
+        {{> pluginname/mod }}
+    {{/mod}}
+</div>
+{{/course}}
