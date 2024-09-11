@@ -1,5 +1,6 @@
 
 <div class="ml-auto">
+
     {{#done}}
     <div data-id="{{id}}" class="pie complete" style="--p:{{percentage}};--c:green" data-toggle="tooltip" data-html="true" data-placement="right"
     title="{{complete}} of {{total}} complete">
@@ -10,9 +11,17 @@
 
     {{^done}}
         {{#total}}
-        <div data-id="{{id}}" class="pie animate" style="--p:{{percentage}};--c:green" data-toggle="tooltip" data-html="true" data-placement="right"
-        title="{{complete}} of {{total}} complete"></div>
+        <div data-id="{{id}}" class="pie animate" style="--p:{{percentage}};--c:green" data-toggle="tooltip" data-placement="right"
+        title="{{complete}} of {{total}} complete">
+            <i class="fa-solid fa-check text-white"></i>
+        </div>
+
         <span class="sr-only">{{complete}} of {{total}} complete</span>
+        <span class="fpie" data-id="{{id}}">
+            <span class="done">{{complete}}</span>
+            of
+            <span class="total">{{total}}</span> complete
+        </span>
         {{/total}}
     {{/done}}
 </div>

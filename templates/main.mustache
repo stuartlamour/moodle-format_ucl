@@ -184,8 +184,64 @@
 {{#js}}
 require(['jquery'], function($) {
      $(".section-actions").appendTo("#ucl-section-actions");
+
+    // Section progress.
+    // Timeout so course-index can load.
+    setTimeout(() => {
+            // Select the node that will be observed for mutations.
+            const targetNode = document.getElementById('course-index');
+            // Config.
+            const config = { attributes: true, childList: true, subtree: true };
+
+            // Callback.
+            const callback = function(mutationList, observer) {
+                // Use traditional 'for loops' for IE 11
+                for(const mutation of mutationList) {
+                    if (mutation.type === 'childList') {
+                        update_section_progress();
+                    }
+                }
+            };
+
+            // Create observer instance linked to callback function.
+            const observer = new MutationObserver(callback);
+
+            // Start observing.
+            observer.observe(targetNode, config);
+    }, 1000);
+
+    function update_section_progress () {
+        // Loop through sections, and calculate progress.
+        $('#course-index .courseindex-section').each( function(i) {
+            const id = $(this).data('id');
+            const total = $(this).find('.completioninfo:not(.completion_none)').length;
+            const done = $(this).find('.completion_complete').length;
+            console.log(id+' '+total+' '+done);
+            update_section_pie(id, total, done);
+        });
+    }
+
+    function update_section_pie (id, total, done) {
+        const pie = $('.pie[data-id="'+id+'"]');
+        const percentage = Math.round((done / total) * 100);
+        const tooltip = ''+done+' of '+total+' complete';
+        $(pie).attr('style','--p:'+percentage+';--c:green');
+        $(pie).attr('data-original-title', tooltip);
+        // Complete.
+        if (percentage == 100) {
+            $(pie).addClass('complete');
+            $(pie).removeClass('animate');
+        }
+        else {
+            $(pie).removeClass('complete');
+            $(pie).addClass('animate');
+        }
+
+    }
 });
 {{/js}}
+
+<!-- listen for updates, and if i get one call template reload on toc? -->
 
 
 <style>
@@ -268,11 +324,17 @@ button:empty {
   content: none;
 }
 
-.animate {
+.pie.animate {
   animation: p .5s .5s both;
+  .fa-check {
+    display: none;
+  }
 }
 .pie.complete {
   background-color: var(--success);
+  .fa-check {
+    display: block;
+  }
 }
 
 @keyframes p {
