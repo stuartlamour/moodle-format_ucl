@@ -183,7 +183,7 @@
 <!-- Move .section-actions -->
 {{#js}}
 require(['jquery'], function($) {
-     $(".section-actions").appendTo("#ucl-section-actions");
+    $(".section-actions").appendTo("#ucl-section-actions");
 
     // Section progress.
     // Timeout so course-index can load.
@@ -198,7 +198,7 @@ require(['jquery'], function($) {
                 // Use traditional 'for loops' for IE 11
                 for(const mutation of mutationList) {
                     if (mutation.type === 'childList') {
-                        update_section_progress();
+                        updateSectionProgress();
                     }
                 }
             };
@@ -210,33 +210,62 @@ require(['jquery'], function($) {
             observer.observe(targetNode, config);
     }, 1000);
 
-    function update_section_progress () {
-        // Loop through sections, and calculate progress.
-        $('#course-index .courseindex-section').each( function(i) {
+    function updateSectionProgress() {
+        // Loop through sections and calculate progress.
+        $('#course-index .courseindex-section').each(function (i) {
             const id = $(this).data('id');
             const total = $(this).find('.completioninfo:not(.completion_none)').length;
-            const done = $(this).find('.completion_complete').length;
-            console.log(id+' '+total+' '+done);
-            update_section_pie(id, total, done);
+            // Check we have mods to complete.
+            const validTotal = parseInt(total, 10) || 0;
+
+            // Only update if section has mods to complete.
+            if (validTotal > 0) {
+                const done = $(this).find('.completion_complete').length;
+                const validDone = parseInt(done, 10) || 0;
+                updateSectionPie(id, validTotal, validDone);
+            }
         });
     }
 
-    function update_section_pie (id, total, done) {
-        const pie = $('.pie[data-id="'+id+'"]');
+    function updateSectionPie(id, total, done) {
+        const pie = $('.pie[data-id="' + id + '"]');
         const percentage = Math.round((done / total) * 100);
-        const tooltip = ''+done+' of '+total+' complete';
-        $(pie).attr('style','--p:'+percentage+';--c:green');
-        $(pie).attr('data-original-title', tooltip);
-        // Complete.
-        if (percentage == 100) {
-            $(pie).addClass('complete');
-            $(pie).removeClass('animate');
-        }
-        else {
-            $(pie).removeClass('complete');
-            $(pie).addClass('animate');
-        }
 
+        // Ensure current percentage is a valid number.
+        let currentPercentage = parseInt($(pie).attr('data-percentage'), 10) || 0;
+
+        // Check if an update is needed.
+        if (currentPercentage !== percentage) {
+            const tooltip = ''+done+' of '+total+' complete';
+
+            // Set tooltip and aria-label
+            $(pie).attr({
+                'data-original-title': tooltip,
+                'aria-label': tooltip
+            });
+
+            // Update pie class based on completion.
+            if (percentage === 100) {
+                $(pie).addClass('complete').removeClass('animate');
+            } else {
+                $(pie).removeClass('complete').addClass('animate');
+            }
+
+            // Animate pie to target percentage.
+            const interval = setInterval(() => {
+                const direction = percentage > currentPercentage ? 1 : -1;
+                currentPercentage += direction;
+
+                $(pie).attr({
+                    'style': `--p:${currentPercentage};--c:green`,
+                    'data-percentage': currentPercentage
+                });
+
+                if (currentPercentage === percentage) {
+                    clearInterval(interval);
+                }
+            }, 30); // Timing.
+        }
     }
 });
 {{/js}}
@@ -320,12 +349,12 @@ button:empty {
   inset: calc(50% - var(--b) / 2);
   background: var(--success);
   transform: rotate(calc(var(--p) * 3.6deg))
-    translateY(calc(50% - var(--w) / 2));
+  translateY(calc(50% - var(--w) / 2));
   content: none;
 }
 
 .pie.animate {
-  animation: p .5s .5s both;
+  animation: p 1s 1s both;
   .fa-check {
     display: none;
   }

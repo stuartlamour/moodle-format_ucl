@@ -1,28 +1,16 @@
 
-<div class="ml-auto">
-
-    {{#done}}
-    <div data-id="{{id}}" class="pie complete" style="--p:{{percentage}};--c:green" data-toggle="tooltip" data-html="true" data-placement="right"
-    title="{{complete}} of {{total}} complete">
-        <i class="fa-solid fa-check text-white"></i>
+<div class="ml-auto" style="max-height: 36px;">
+    {{#total}}
+    <div data-id="{{id}}"
+        data-percentage="{{percentage}}"
+        class="pie animate {{#done}} complete {{/done}}"
+        style="--p:{{percentage}};--c:green"
+        data-toggle="tooltip" data-placement="right"
+        title="{{complete}} of {{total}} complete"
+        aria-label="{{complete}} of {{total}} complete">
+            <i class="fa-solid fa-check fa-xs text-white"></i>
     </div>
     <span class="sr-only">{{complete}} of {{total}} complete</span>
-    {{/done}}
-
-    {{^done}}
-        {{#total}}
-        <div data-id="{{id}}" class="pie animate" style="--p:{{percentage}};--c:green" data-toggle="tooltip" data-placement="right"
-        title="{{complete}} of {{total}} complete">
-            <i class="fa-solid fa-check text-white"></i>
-        </div>
-
-        <span class="sr-only">{{complete}} of {{total}} complete</span>
-        <span class="fpie" data-id="{{id}}">
-            <span class="done">{{complete}}</span>
-            of
-            <span class="total">{{total}}</span> complete
-        </span>
-        {{/total}}
-    {{/done}}
+    {{/total}}
 </div>
 
