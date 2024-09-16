@@ -168,13 +168,13 @@
 }}
 <div id="course-format-{{uniqid}}">
     <div class="single-section">
-        <ul class="course-format-{{format}}">
+        <ul class="{{format}} list-unstyled" data-for="course_sectionlist">
         {{! UCL Change.
             Output section 0 only on course home page.
             Add UCL meta-data to this section.
         }}
         {{#firstsection}}
-            <div class="p-3">
+            <li class="p-3">
                 <h3>Meta-data</h3>
                 <p>What is required meta-data e.g. learning outcomes etc</p>
                 <hr>
@@ -187,7 +187,7 @@
                 <h5>Course assessements</h5>
                 <p>For learners show summative assessments with metadate from sits (weight? etc).<p>
                 <p>For admin show editing including maping and transfer of marks.</p>
-            </div>
+            </li>
             {{> core_courseformat/local/content/section }}
         {{/firstsection}}
 

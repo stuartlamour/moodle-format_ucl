@@ -113,8 +113,7 @@ class renderer extends section_renderer {
             $data->id = $section->id;
             $data->total = $total;
             $data->complete = $complete;
-            $data->percentage = ($complete / $total) * 100;
-            // Completed section.
+            $data->percentage = round(($complete / $total) * 100);
             if ($data->percentage == 100) {
                 $data->done = true;
             }
@@ -157,23 +156,6 @@ class renderer extends section_renderer {
                     $s->class = "course-home";
                 }
 
-                // TODO - editing in toc...
-                // SHAME - Move section link.
-                // if ($section->editing) {
-                    /*
-                    http://localhost:8888/moodle43/course/view.php?id=3&amp;sesskey=ukEIuVkgjE&amp;movesection=1&amp;section=1#section-0"
-                    */
-                    $m = new stdClass;
-                    $params = ['id' => $course->id,
-                        'section' => $section->section,
-                        'sesskey' => sesskey(),
-                        'movesection' => 1,
-                    ];
-                    $m->url = new moodle_url('/course/view.php', $params);
-                    $m->id = $section->id;
-                    $s->movesection = $this->render_from_template('format_ucl/movesection', $m);
-                // }
-
                 // TODO - if mods?
                 if ($course->enablecompletion) {
                     $s->progress = $this->format_ucl_section_progress($section);
@@ -195,6 +177,7 @@ class renderer extends section_renderer {
             $returnurl = new moodle_url('/course/view.php',
                 ['id' => $course->id,
                 'section' => count($coursesections),
+                'newsectionredirect' => true,
                 ]
             );
 
@@ -252,28 +235,28 @@ class renderer extends section_renderer {
      *
      */
     public function render_content($widget): string {
-        global $PAGE;
+        global $PAGE, $COURSE;
 
         $data = $widget->export_for_template($this);
+        // Table of contents for ucl format.
         $data->toc = $this->format_ucl_table_of_contents();
 
+        // TODO - this should be if editing.
         $data->canedit = has_any_capability(['moodle/course:manageactivities'], $PAGE->context);
 
-        // TODO -  probably seperate function.
+
         // SHAME - get section 0 only for first page.
         // Is there a better way to do this?
+        // TODO -  probably seperate function.
         foreach ($data->sections as $section) {
             if ($section->num == '0') {
                 $section->displayonesection = true; // Magic to stop accordians.
                 $data->firstsection = $section;
 
-                // Section title, unless editing, then html including inplace edit.
+                // Section title.
                 $data->sectionname = $section->header->name;
-                if ($section->editing) {
-                    $data->sectionname = $section->header->title;
-                }
 
-                // Add next visible section for template.
+                // Add next visible section for next/previous section template.
                 if ($n = $this->next_section()) {
                     $data->sectionselector = $n;
                 }
@@ -284,13 +267,96 @@ class renderer extends section_renderer {
         // Section 0 has a singlesection header.
         // TODO - make better.
         if ($data->singlesection->header) {
-            $data->sectionname = $data->singlesection->header->title;
             // Swap section 0 into special first section, with UCL meatdata.
             $data->firstsection = $data->singlesection;
             $data->singlesection = '';
         }
 
-        $data->sectionname .= $data->singlesection->singleheader->title;
+        // SHAME - Edit section menu.
+        // I don't know why, but the core edit a section menu dosn't work.
+        // hide/show dosn't reload.
+        // hightlight dosn't show.
+        // If we can get these to work, that would be great, but in the mean time...
+        // Edit section menu.
+        if ($data->singlesection) {
+            // Edit.
+            // http://localhost:8888/moodle44/course/editsection.php?id=36&sr=1
+            // id = section->id
+            // sr = section->section ?
+            $params = ['id' => $data->singlesection->id,
+                'section' => $data->singlesection->section,
+                'sesskey' => sesskey(),
+            ];
+            $data->editurl = new moodle_url('/course/editsection.php', $params);
+
+            // Show / Hide.
+            // http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&show=1&sectionid=36
+            // id = course->id
+            // ssectionid = ection->id
+            // show ? 1
+            // hide ? 1
+            // sesskey
+            // var_dump($data->singlesection);
+            $params = ['id' => $COURSE->id,
+                'sectionid' => $data->singlesection->id,
+                'sesskey' => sesskey(),
+            ];
+            if ($data->singlesection->ishidden) {
+                $params['show'] = $data->singlesection->num;
+                $data->showurl = new moodle_url('/course/view.php', $params);
+            } else {
+                $params['hide'] = $data->singlesection->num;
+                $data->hideurl = new moodle_url('/course/view.php', $params);
+            }
+
+
+            // Highlight.
+            // http://localhost:8888/moodle44/course/view.php?id=3&sesskey=ZPBaSdBBnI&sectionid=4&marker=0
+            // id = course->id
+            // sectionid = section->id
+            // marker = bool!
+
+            // Delete.
+            // http://localhost:8888/moodle44/course/editsection.php?id=36&delete=1&sesskey=ZPBaSdBBnI&sr=1
+            // id = $section->id
+            // delete = bool
+            // sr = ??
+
+
+        }
+
+
+        // SHAME - Move - only for single sections.
+        // TODO - improve this.
+        if ($data->singlesection) {
+
+            // http://localhost:8888/moodle43/course/view.php?id=3&amp;sesskey=ukEIuVkgjE&amp;movesection=1&amp;section=1#section-0"
+            $m = new stdClass;
+            $params = ['id' => $COURSE->id,
+                'section' => $data->singlesection->section,
+                'sesskey' => sesskey(),
+                'movesection' => 1,
+            ];
+            $m->url = new moodle_url('/course/view.php', $params);
+            $m->id = $data->singlesection->id;
+            $data->movesection = $this->render_from_template('format_ucl/movesection', $m);
+        }
+
+        $data->sectionname .= $data->singlesection->singleheader->name;
+
+        // SHAME - Redirect to edit page when creating a new section.
+        // This is pretty hardcore, outputs js redirect in template.
+        // TODO - make better.
+        // TODO - the redirect on save from the edit page seems to not work.
+        // Outputs course/view.php?id=6&expandsection=17#section-17
+        // We want course/section.php?id=115
+        if ($data->newsectionredirect = optional_param('newsectionredirect', null, PARAM_BOOL)) {
+            $data->newurl = new moodle_url('/course/editsection.php',
+                ['id' => $data->singlesection->id,
+                 'sr' => $data->singlesection->num,
+                ]
+            );
+        }
 
         return $this->render_from_template('format_ucl/main', $data);
     }

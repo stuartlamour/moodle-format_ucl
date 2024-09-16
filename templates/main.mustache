@@ -167,23 +167,60 @@
     }
 }}
 
+{{! SHAME - Redirect to the edit page when creating a new section. }}
+{{#newsectionredirect}}
+<script>
+    window.location.replace('{{newurl}}');
+</script>
+{{/newsectionredirect}}
+
+
 <div class="row pt-3">
     <div class="col-md-3">
         {{{toc}}}
     </div>
 
-    <div class="col fadeInUp">
+    <div class="col">
         <div class="d-flex align-items-center">
+
+            {{! SHAME - redo edit menu.
+            Edit
+            show/hide
+            highlight
+            duplicate
+            delete
+            }}
+            <!--
+            <div>
+            {{{movesection}}}
+            <br>
+            <a href="http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&show=1&sectionid=36">show</a>
+            <a href="http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&hide=1&sectionid=36">hide</a>
+
+            <hr>
+            <a data-action="deleteSection" data-id="105" class="editing_delete" href="http://localhost:8888/moodle44/course/editsection.php?id=105&delete=1&sesskey=ZPBaSdBBnI&sr=14">delete</a>
+
+
+            </div>
+            -->
             <h2 class="ucl-section-name">{{{sectionname}}}</h2>
-            <div class="ml-auto" id="ucl-section-actions"></div>
+            <div class="ml-auto" id="ucl-section-actions">
+                {{> format_ucl/sectionactions }}
+            </div>
         </div>
         {{> format_ucl/content }}
     </div>
 </div>
-<!-- Move .section-actions -->
+
+{{! TODO - hidden eye icon on changing in action menu.
+- In core it refreshes the page!
+So when a section is hidden, we could hide the show icon?
+}}
+
 {{#js}}
 require(['jquery'], function($) {
-    $(".section-actions").appendTo("#ucl-section-actions");
+    // $(".section-actions").appendTo("#ucl-section-actions");
+    // #destination-selector .collapse-list-link
 
     // Section progress.
     // Timeout so course-index can load.
@@ -264,7 +301,7 @@ require(['jquery'], function($) {
                 if (currentPercentage === percentage) {
                     clearInterval(interval);
                 }
-            }, 30); // Timing.
+            }, 10); // Timing.
         }
     }
 });
@@ -360,7 +397,9 @@ button:empty {
   }
 }
 .pie.complete {
+  transition: all 1s;
   background-color: var(--success);
+
   .fa-check {
     display: block;
   }
