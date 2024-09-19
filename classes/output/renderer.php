@@ -118,7 +118,7 @@ class renderer extends section_renderer {
                 $data->done = true;
             }
         }
-        return $this->render_from_template('format_ucl/toc_link_progress', $data);
+        return $this->render_from_template('format_ucl/toc/toc_link_progress', $data);
     }
 
     /**
@@ -168,7 +168,7 @@ class renderer extends section_renderer {
                     $s->progress = $this->format_ucl_section_progress($section);
                 }
 
-                $data->sections .= $this->render_from_template('format_ucl/toc_link', $s);
+                $data->sections .= $this->render_from_template('format_ucl/toc/toc_link', $s);
             }
         }
 
@@ -200,15 +200,15 @@ class renderer extends section_renderer {
             ];
         }
 
-        return $this->render_from_template('format_ucl/toc', $data);
+        return $this->render_from_template('format_ucl/toc/toc', $data);
     }
 
     /**
-    * // SHAME - by default section 0 dosn't have the previous/next to output in template.
     * Return template data for next visible section - only called by section 0.
+    * // SHAME - by default section 0 dosn't have the previous/next to output in template.
     *
     */
-    public function next_section() {
+    public function next_section(): stdClass {
         global $COURSE;
         $course = $COURSE;
 
@@ -229,7 +229,84 @@ class renderer extends section_renderer {
             }
             $i++;
         }
-        return false;
+        return new stdClass;
+    }
+
+    /**
+    * Return html for sectionactions menu.
+    * // SHAME - by default section 0 dosn't have the previous/next to output in template.
+    *
+    */
+    public function sectionactions($data): string {
+        global $COURSE;
+
+        // Edit.
+        $params = [
+            'id' => $data->singlesection->id,
+            'section' => $data->singlesection->num,
+            'sectionid' => $data->singlesection->id,
+            'sesskey' => sesskey(),
+        ];
+        $data->editurl = new moodle_url('/course/editsection.php', $params);
+
+        // Move.
+        $params = [
+            'movesection' => 1,
+            'id' => $COURSE->id,
+            'section' => $data->singlesection->section,
+            'sesskey' => sesskey(),
+        ];
+        $data->moveurl = new moodle_url('/course/view.php', $params);
+        $data->sectionid = $data->singlesection->id;
+
+        // Show / Hide.
+        $params = [
+            'id' => $COURSE->id,
+            'sectionid' => $data->singlesection->id,
+            'sesskey' => sesskey(),
+        ];
+        if ($data->singlesection->ishidden) {
+            $params['show'] = $data->singlesection->num;
+            $data->showurl = new moodle_url('/course/view.php', $params);
+        } else {
+            $params['hide'] = $data->singlesection->num;
+            $data->hideurl = new moodle_url('/course/view.php', $params);
+        }
+
+        // Highlight.
+        $params = [
+            'id' => $COURSE->id,
+            'sectionid' => $data->singlesection->id,
+            'sesskey' => sesskey(),
+        ];
+        if ($data->singlesection->iscurrent) {
+            $params['marker'] = 0;
+            $data->unhighlighturl = new moodle_url('/course/view.php', $params);
+        } else {
+            $params['marker'] = $data->singlesection->num;
+            $data->highlighturl = new moodle_url('/course/view.php', $params);
+        }
+
+        // Duplicate.
+        $params = [
+            'id' => $COURSE->id,
+            'duplicatesection' => $data->singlesection->num,
+            'section' => $data->singlesection->num,
+            'sesskey' => sesskey(),
+        ];
+        $data->duplicateurl = new moodle_url('/course/view.php', $params);
+
+        // Delete.
+        $params = [
+            'delete' => 1,
+            'id' => $data->singlesection->id,
+            'sr' => $data->singlesection->num -1,
+            'confirm' => true,
+            'sesskey' => sesskey(),
+        ];
+        $data->deleteurl = new moodle_url('/course/editsection.php', $params);
+
+        return $this->render_from_template('format_ucl/sectionactions', $data);
     }
 
     /**
@@ -243,8 +320,20 @@ class renderer extends section_renderer {
      */
     public function render_content($widget): string {
         global $PAGE, $COURSE;
-
         $data = $widget->export_for_template($this);
+
+        // Redirect to edit page when creating a new section.
+        // TODO - make better.
+        // SHAME - This is pretty hardcore, outputs js redirect in template.
+        if ($data->newsectionredirect = optional_param('newsectionredirect', null, PARAM_BOOL)) {
+            $data->newurl = new moodle_url('/course/editsection.php',
+                ['id' => $data->singlesection->id,
+                 'sr' => $data->singlesection->num,
+                ]
+            );
+            return $this->render_from_template('format_ucl/main', $data);
+        }
+
         // Table of contents for ucl format.
         $data->toc = $this->format_ucl_table_of_contents();
 
@@ -279,122 +368,12 @@ class renderer extends section_renderer {
             $data->singlesection = '';
         }
 
-        // SHAME - Edit section menu.
-        // I don't know why, but the core edit a section menu dosn't work.
-        // hide/show dosn't reload.
-        // hightlight dosn't show.
-        // If we can get these to work, that would be great, but in the mean time...
-        // Edit section menu.
+        // Section actions - the edit section menu.
         if ($data->singlesection) {
-
-            // Edit.
-            // http://localhost:8888/moodle44/course/editsection.php?id=36&sr=1
-            // id = section->id
-            // sr = section->section ?
-            $params = [
-                'id' => $data->singlesection->id,
-                'section' => $data->singlesection->num,
-                'sectionid' => $data->singlesection->id,
-                'sesskey' => sesskey(),
-            ];
-            $data->editurl = new moodle_url('/course/editsection.php', $params);
-
-            // Show / Hide.
-            // http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&show=1&sectionid=36
-            // id = course->id
-            // ssectionid = ection->id
-            // show ? 1
-            // hide ? 1
-            // sesskey
-
-            $params = [
-                'id' => $COURSE->id,
-                'sectionid' => $data->singlesection->id,
-                'sesskey' => sesskey(),
-            ];
-            if ($data->singlesection->ishidden) {
-                $params['show'] = $data->singlesection->num;
-                $data->showurl = new moodle_url('/course/view.php', $params);
-            } else {
-                $params['hide'] = $data->singlesection->num;
-                $data->hideurl = new moodle_url('/course/view.php', $params);
-            }
-
-
-            // Highlight.
-            // http://localhost:8888/moodle44/course/view.php?id=3&sesskey=ZPBaSdBBnI&sectionid=4&marker=0
-            // id = course->id
-            // sectionid = section->id
-            // marker = section num
-
-            $params = [
-                'id' => $COURSE->id,
-                'sectionid' => $data->singlesection->id,
-                'sesskey' => sesskey(),
-            ];
-            if ($data->singlesection->iscurrent) {
-                $params['marker'] = 0;
-                $data->unhighlighturl = new moodle_url('/course/view.php', $params);
-            } else {
-                $params['marker'] = $data->singlesection->num;
-                $data->highlighturl = new moodle_url('/course/view.php', $params);
-            }
-
-            // Duplicate.
-            // http://localhost:8888/moodle44/course/view.php?id=6&expandsection=2&sesskey=vknrSTqoHD&section=2&duplicatesection=2&sr=2#section-2
-            // id = $course->id
-            // duplicatesection = section->num
-
-
-            // Delete.
-            // http://localhost:8888/moodle44/course/editsection.php?id=36&delete=1&sesskey=ZPBaSdBBnI&sr=1
-            // http://localhost:8888/moodle44/course/editsection.php?id=136&delete=1&sesskey=4XkKCZNZXh&sr=3
-            // id = $section->id
-            // delete = bool
-            // sr = ??
-            // TODO - make a confirm alert for this.
-            $params = [
-                'delete' => 1,
-                'id' => $data->singlesection->id,
-                'sr' => $data->singlesection->num -1,
-                'confirm' => true,
-                'sesskey' => sesskey(),
-            ];
-            $data->deleteurl = new moodle_url('/course/editsection.php', $params);
-        }
-
-
-        // SHAME - Move - only for single sections.
-        // TODO - improve this.
-        if ($data->singlesection) {
-
-            // http://localhost:8888/moodle43/course/view.php?id=3&amp;sesskey=ukEIuVkgjE&amp;movesection=1&amp;section=1#section-0"
-            $m = new stdClass;
-            $params = ['id' => $COURSE->id,
-                'section' => $data->singlesection->section,
-                'sesskey' => sesskey(),
-                'movesection' => 1,
-            ];
-            $m->url = new moodle_url('/course/view.php', $params);
-            $m->id = $data->singlesection->id;
-            $data->movesection = $this->render_from_template('format_ucl/movesection', $m);
+            $data->sectionactions = $this->sectionactions($data);
         }
 
         $data->sectionname .= $data->singlesection->singleheader->name;
-
-        // SHAME - Redirect to edit page when creating a new section.
-        // This is pretty hardcore, outputs js redirect in template.
-        // TODO - make better.
-        // TODO - the redirect on save from the edit page seems to not work.
-        // Outputs course/view.php?id=6&expandsection=17#section-17
-        // We want course/section.php?id=115
-        if ($data->newsectionredirect = optional_param('newsectionredirect', null, PARAM_BOOL)) {
-            $data->newurl = new moodle_url('/course/editsection.php',
-                ['id' => $data->singlesection->id,
-                 'sr' => $data->singlesection->num,
-                ]
-            );
-        }
 
         return $this->render_from_template('format_ucl/main', $data);
     }

@@ -1,0 +1,12 @@
+{{! SHAME - Redirect to the edit page when creating a new section. }}
+{{! SHAME - Hide the page to avoid redirect flicker. }}
+<style>
+#page {
+    display: none !important;
+}
+</style>
+
+{{! SHAME - Redirect. }}
+<script>
+    window.location.replace('{{{newurl}}}');
+</script>

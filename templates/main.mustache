@@ -167,23 +167,9 @@
     }
 }}
 
-{{! SHAME - Redirect to the edit page when creating a new section. }}
 {{#newsectionredirect}}
-
-{{! SHAME - Hide the page. }}
-<style>
-#page {
-    display: none !important;
-}
-</style>
-
-{{! SHAME - Redirect. }}
-<script>
-    window.location.replace('{{{newurl}}}');
-</script>
-
+    {{> format_ucl/newsectionredirect }}
 {{/newsectionredirect}}
-
 
 <div class="row pt-3">
     <div class="col-md-3">
@@ -192,24 +178,19 @@
 
     <div class="col">
         <div class="d-flex align-items-center">
-
-            <div>
-            {{{movesection}}}
-            </div>
-
             <h2 class="ucl-section-name">{{{sectionname}}}</h2>
+
+            {{#sectionactions}}
             <div class="ml-auto" id="ucl-section-actions">
-                {{> format_ucl/sectionactions }}
+                {{{sectionactions}}}
             </div>
+            {{/sectionactions}}
+
         </div>
         {{> format_ucl/content }}
     </div>
 </div>
 
-{{! TODO - hidden eye icon on changing in action menu.
-- In core it refreshes the page!
-So when a section is hidden, we could hide the show icon?
-}}
 
 {{#js}}
 require(['jquery'], function($) {
@@ -305,10 +286,6 @@ require(['jquery'], function($) {
 
 
 <style>
-/* Hide flash on mark as done button. Could be better. */
-button:empty {
-    transition: all 0.4s ease-in-out;
-}
 /* TODO - sort out the header, rather than hiding. */
 #page-course-view-section-ucl .page-header-headings h1 {
   display: none;
@@ -330,6 +307,7 @@ button:empty {
   color: var(--dark);
 }
 
+/* Progress cicle. */
 @property --p {
   syntax: "<number>";
   inherits: true;

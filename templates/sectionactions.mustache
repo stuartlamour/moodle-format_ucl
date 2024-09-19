@@ -15,10 +15,14 @@
             <i class="fa-regular fa-pen-to-square mr-2"></i>
             Edit
         </a>
-        <a class="dropdown-item" href="">
+
+        {{#moveurl}}
+        <a class="dropdown-item" href="{{{moveurl}}}"
+            data-action="moveSection" data-id="{{sectionid}}">
             <i class="fa-solid fa-arrows-up-down-left-right mr-2"></i>
             Move
         </a>
+        {{/moveurl}}
 
         {{#hideurl}}
         <a class="dropdown-item" href="{{{hideurl}}}">
@@ -50,7 +54,7 @@
         </a>
         {{/unhighlighturl}}
 
-        <a class="dropdown-item" href="">
+        <a class="dropdown-item" href="{{{duplicateurl}}}">
             <i class="fa-solid fa-clone mr-2"></i>
             Duplicate
         </a>

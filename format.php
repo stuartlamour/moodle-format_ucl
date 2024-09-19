@@ -43,7 +43,7 @@ if ($topic = optional_param('topic', 0, PARAM_INT)) {
 // which is different from the section num passed in expand.
 // Is there a setting to make moodle use section for return url?
 if ($expandsection = optional_param('expandsection', 0, PARAM_INT)) {
-    // Hide the page.
+    // SHAME - Hide the page to avoid redirect flicker.
     echo "
     <style>
     #page {
@@ -56,7 +56,8 @@ if ($expandsection = optional_param('expandsection', 0, PARAM_INT)) {
     $coursesections = $format->get_sections();
 
     foreach ($coursesections as $section) {
-        if($section->section == $expandsection) {
+        if ($section->section == $expandsection) {
+            // TODO - if section 0, redirect to /course/section.php?id=courseid;
             $redirect = new moodle_url('/course/section.php', ['id' => $section->id]);
             redirect($redirect); // TODO - are there any params to add to make this better?
         }
