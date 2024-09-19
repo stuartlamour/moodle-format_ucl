@@ -156,6 +156,13 @@ class renderer extends section_renderer {
                     $s->class = "course-home";
                 }
 
+                // Highlighted.
+                if ($course->marker) {
+                    if ($section->section == $course->marker) {
+                        $s->hightlight = true;
+                    }
+                }
+
                 // TODO - if mods?
                 if ($course->enablecompletion) {
                     $s->progress = $this->format_ucl_section_progress($section);
@@ -279,12 +286,15 @@ class renderer extends section_renderer {
         // If we can get these to work, that would be great, but in the mean time...
         // Edit section menu.
         if ($data->singlesection) {
+
             // Edit.
             // http://localhost:8888/moodle44/course/editsection.php?id=36&sr=1
             // id = section->id
             // sr = section->section ?
-            $params = ['id' => $data->singlesection->id,
-                'section' => $data->singlesection->section,
+            $params = [
+                'id' => $data->singlesection->id,
+                'section' => $data->singlesection->num,
+                'sectionid' => $data->singlesection->id,
                 'sesskey' => sesskey(),
             ];
             $data->editurl = new moodle_url('/course/editsection.php', $params);
@@ -296,8 +306,9 @@ class renderer extends section_renderer {
             // show ? 1
             // hide ? 1
             // sesskey
-            // var_dump($data->singlesection);
-            $params = ['id' => $COURSE->id,
+
+            $params = [
+                'id' => $COURSE->id,
                 'sectionid' => $data->singlesection->id,
                 'sesskey' => sesskey(),
             ];
@@ -314,15 +325,42 @@ class renderer extends section_renderer {
             // http://localhost:8888/moodle44/course/view.php?id=3&sesskey=ZPBaSdBBnI&sectionid=4&marker=0
             // id = course->id
             // sectionid = section->id
-            // marker = bool!
+            // marker = section num
+
+            $params = [
+                'id' => $COURSE->id,
+                'sectionid' => $data->singlesection->id,
+                'sesskey' => sesskey(),
+            ];
+            if ($data->singlesection->iscurrent) {
+                $params['marker'] = 0;
+                $data->unhighlighturl = new moodle_url('/course/view.php', $params);
+            } else {
+                $params['marker'] = $data->singlesection->num;
+                $data->highlighturl = new moodle_url('/course/view.php', $params);
+            }
+
+            // Duplicate.
+            // http://localhost:8888/moodle44/course/view.php?id=6&expandsection=2&sesskey=vknrSTqoHD&section=2&duplicatesection=2&sr=2#section-2
+            // id = $course->id
+            // duplicatesection = section->num
+
 
             // Delete.
             // http://localhost:8888/moodle44/course/editsection.php?id=36&delete=1&sesskey=ZPBaSdBBnI&sr=1
+            // http://localhost:8888/moodle44/course/editsection.php?id=136&delete=1&sesskey=4XkKCZNZXh&sr=3
             // id = $section->id
             // delete = bool
             // sr = ??
-
-
+            // TODO - make a confirm alert for this.
+            $params = [
+                'delete' => 1,
+                'id' => $data->singlesection->id,
+                'sr' => $data->singlesection->num -1,
+                'confirm' => true,
+                'sesskey' => sesskey(),
+            ];
+            $data->deleteurl = new moodle_url('/course/editsection.php', $params);
         }
 
 

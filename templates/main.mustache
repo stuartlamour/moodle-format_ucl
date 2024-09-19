@@ -169,9 +169,19 @@
 
 {{! SHAME - Redirect to the edit page when creating a new section. }}
 {{#newsectionredirect}}
+
+{{! SHAME - Hide the page. }}
+<style>
+#page {
+    display: none !important;
+}
+</style>
+
+{{! SHAME - Redirect. }}
 <script>
-    window.location.replace('{{newurl}}');
+    window.location.replace('{{{newurl}}}');
 </script>
+
 {{/newsectionredirect}}
 
 
@@ -183,26 +193,10 @@
     <div class="col">
         <div class="d-flex align-items-center">
 
-            {{! SHAME - redo edit menu.
-            Edit
-            show/hide
-            highlight
-            duplicate
-            delete
-            }}
-            <!--
             <div>
             {{{movesection}}}
-            <br>
-            <a href="http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&show=1&sectionid=36">show</a>
-            <a href="http://localhost:8888/moodle44/course/view.php?id=6&sesskey=ZPBaSdBBnI&hide=1&sectionid=36">hide</a>
-
-            <hr>
-            <a data-action="deleteSection" data-id="105" class="editing_delete" href="http://localhost:8888/moodle44/course/editsection.php?id=105&delete=1&sesskey=ZPBaSdBBnI&sr=14">delete</a>
-
-
             </div>
-            -->
+
             <h2 class="ucl-section-name">{{{sectionname}}}</h2>
             <div class="ml-auto" id="ucl-section-actions">
                 {{> format_ucl/sectionactions }}

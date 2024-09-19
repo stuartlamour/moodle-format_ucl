@@ -35,16 +35,28 @@
         {{/showurl}}
 
         <hr>
-        <a class="dropdown-item" href="">
+
+        {{#highlighturl}}
+        <a class="dropdown-item" href="{{{highlighturl}}}">
             <i class="fa-solid fa-highlighter mr-2"></i>
-            Highlight / yeh no
+            Highlight
         </a>
+        {{/highlighturl}}
+
+        {{#unhighlighturl}}
+        <a class="dropdown-item" href="{{{unhighlighturl}}}">
+            <i class="fa-solid fa-highlighter mr-2"></i>
+            Unhighlight
+        </a>
+        {{/unhighlighturl}}
 
         <a class="dropdown-item" href="">
             <i class="fa-solid fa-clone mr-2"></i>
             Duplicate
         </a>
-        <a class="dropdown-item" href="">
+
+        <!-- TODO - make confirm better. -->
+        <a class="dropdown-item" onclick="return confirm('Are you sure?')" href="{{{deleteurl}}}">
             <i class="fa-regular fa-trash-can mr-2"></i>
             Delete
         </a>

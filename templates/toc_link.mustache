@@ -1,6 +1,16 @@
 <li class="d-flex align-items-center py-1 {{#active}} active {{/active}}">
+    <div>
+        {{#hightlight}}
+        <span badge class="badge badge-primary rounded-pill px-2">
+            Highlighted
+        </span>
+        <br>
+        {{/hightlight}}
 
-    <a href="{{{url}}}" class="line-clamp-2 {{{class}}}">{{{name}}}</a>
+        <a href="{{{url}}}" class="line-clamp-2 {{{class}}}">
+            {{{name}}}
+        </a>
+    </div>
 
     {{^visible}}
         <div class="ml-auto">
