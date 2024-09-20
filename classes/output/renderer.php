@@ -209,7 +209,7 @@ class renderer extends section_renderer {
     * // SHAME - by default section 0 dosn't have the previous/next to output in template.
     *
     */
-    public function next_section(): stdClass {
+    public function format_ucl_next_section(): stdClass {
         global $COURSE;
         $course = $COURSE;
 
@@ -238,7 +238,7 @@ class renderer extends section_renderer {
     * // SHAME - by default section 0 dosn't have the previous/next to output in template.
     *
     */
-    public function sectionactions($data): string {
+    public function format_ucl_sectionactions($data): string {
         global $COURSE;
 
         // Edit.
@@ -335,12 +335,13 @@ class renderer extends section_renderer {
             return $this->render_from_template('format_ucl/main', $data);
         }
 
-        // Table of contents for ucl format.
-        $data->toc = $this->format_ucl_table_of_contents();
-
         // TODO - this should be if editing.
         // Use it to hide edit controlls when not in edit mode.
         $data->canedit = has_any_capability(['moodle/course:manageactivities'], $PAGE->context);
+
+
+        // Table of contents for ucl format.
+        $data->toc = $this->format_ucl_table_of_contents();
 
 
         // SHAME - get section 0 only for first page.
@@ -355,7 +356,7 @@ class renderer extends section_renderer {
                 $data->sectionname = $section->header->name;
 
                 // Add next visible section for next/previous section template.
-                if ($n = $this->next_section()) {
+                if ($n = $this->format_ucl_next_section()) {
                     $data->sectionselector = $n;
                 }
             }
@@ -373,7 +374,7 @@ class renderer extends section_renderer {
 
         // Section actions - the edit section menu.
         if ($data->singlesection) {
-            $data->sectionactions = $this->sectionactions($data);
+            $data->sectionactions = $this->format_ucl_sectionactions($data);
         }
 
         return $this->render_from_template('format_ucl/main', $data);
