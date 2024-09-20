@@ -74,11 +74,11 @@ class renderer extends section_renderer {
 
 
     /**
-    * Given a section, return the html for progress.
+    * Given a section, return the data for progress.
     *
     * @param section|stdClass $section The course_section entry from DB
     */
-    public function format_ucl_section_progress($section): string {
+    public function format_ucl_section_progress($section): stdClass {
         global $COURSE;
         $course = $COURSE;
 
@@ -118,7 +118,7 @@ class renderer extends section_renderer {
                 $data->done = true;
             }
         }
-        return $this->render_from_template('format_ucl/toc/toc_link_progress', $data);
+        return $data;
     }
 
     /**
@@ -168,7 +168,8 @@ class renderer extends section_renderer {
                     $s->progress = $this->format_ucl_section_progress($section);
                 }
 
-                $data->sections .= $this->render_from_template('format_ucl/toc/toc_link', $s);
+                // Add to template data.
+                $data->coursesection[] = $s;
             }
         }
 
@@ -338,6 +339,7 @@ class renderer extends section_renderer {
         $data->toc = $this->format_ucl_table_of_contents();
 
         // TODO - this should be if editing.
+        // Use it to hide edit controlls when not in edit mode.
         $data->canedit = has_any_capability(['moodle/course:manageactivities'], $PAGE->context);
 
 
@@ -361,19 +363,18 @@ class renderer extends section_renderer {
 
         // Section name - we never want to output this as a link.
         // Section 0 has a singlesection header.
-        // TODO - make better.
+        // TODO - this all make better.
         if ($data->singlesection->header) {
             // Swap section 0 into special first section, with UCL meatdata.
             $data->firstsection = $data->singlesection;
             $data->singlesection = '';
         }
+        $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
 
         // Section actions - the edit section menu.
         if ($data->singlesection) {
             $data->sectionactions = $this->sectionactions($data);
         }
-
-        $data->sectionname .= $data->singlesection->singleheader->name;
 
         return $this->render_from_template('format_ucl/main', $data);
     }

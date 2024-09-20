@@ -25,6 +25,8 @@
     {{/visible}}
 
     {{#visible}}
-        {{{progress}}}
+        {{#progress}}
+            {{> format_ucl/toc/toc_link_progress }}
+        {{/progress}}
     {{/visible}}
 </li>
