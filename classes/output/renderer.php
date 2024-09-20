@@ -122,11 +122,11 @@ class renderer extends section_renderer {
     }
 
     /**
-    * Output html for course table of contents.
+    * Return data for course table of contents.
     *
     * @return string the TOC HTML
     */
-    public function format_ucl_table_of_contents(): string {
+    public function format_ucl_table_of_contents(): stdClass {
         global $COURSE, $PAGE;
         $course = $COURSE;
 
@@ -200,8 +200,7 @@ class renderer extends section_renderer {
                 'title' => $addstring,
             ];
         }
-
-        return $this->render_from_template('format_ucl/toc/toc', $data);
+        return $data;
     }
 
     /**
@@ -341,8 +340,7 @@ class renderer extends section_renderer {
 
 
         // Table of contents for ucl format.
-        $data->toc = $this->format_ucl_table_of_contents();
-
+        $data->toc[] = $this->format_ucl_table_of_contents();
 
         // SHAME - get section 0 only for first page.
         // Is there a better way to do this?
