@@ -255,7 +255,7 @@ class renderer extends section_renderer {
         $params = [
             'movesection' => 1,
             'id' => $COURSE->id,
-            'section' => $data->singlesection->section,
+            'section' => $data->singlesection->num,
             'sesskey' => sesskey(),
         ];
         $data->moveurl = new moodle_url('/course/view.php', $params);
@@ -267,7 +267,7 @@ class renderer extends section_renderer {
             'sectionid' => $data->singlesection->id,
             'sesskey' => sesskey(),
         ];
-        if ($data->singlesection->ishidden) {
+        if (isset($data->singlesection->ishidden)) {
             $params['show'] = $data->singlesection->num;
             $data->showurl = new moodle_url('/course/view.php', $params);
         } else {
@@ -281,7 +281,7 @@ class renderer extends section_renderer {
             'sectionid' => $data->singlesection->id,
             'sesskey' => sesskey(),
         ];
-        if ($data->singlesection->iscurrent) {
+        if (isset($data->singlesection->iscurrent)) {
             $params['marker'] = 0;
             $data->unhighlighturl = new moodle_url('/course/view.php', $params);
         } else {
@@ -366,6 +366,9 @@ class renderer extends section_renderer {
                     if ($n = $this->format_ucl_next_section()) {
                         $data->sectionselector = $n;
                     }
+
+                    // Single section editing.
+                    // TODO - make better.
                     if ($data->isediting) {
                         // Edit.
                         $params = [
@@ -381,7 +384,7 @@ class renderer extends section_renderer {
             }
 
             // Section name - we never want to output this as a link.
-            // Section 0 has a singlesection header.
+            // Section 0 has a singlesection header, other sections don't.
             // TODO - this all make better.
             if (isset($data->singlesection->header)) {
                 // Swap section 0 into special first section, with UCL meatdata.
@@ -389,12 +392,12 @@ class renderer extends section_renderer {
                 $data->singlesection = '';
             }
             if (isset($data->singlesection)) {
-                $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
+                $data->sectionname = $data->singlesection->singleheader->name; // TODO - why did i do this?
             }
 
             // Section actions - the edit section menu.
             if ($data->isediting) {
-                if ($data->singlesection) {
+                if (isset($data->singlesection)) {
                     $data->sectionactions = $this->format_ucl_sectionactions($data);
                 }
             }

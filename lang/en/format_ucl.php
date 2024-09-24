@@ -25,6 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['currentsection'] = 'Highlighted';
 $string['hidefromothers'] = 'Hide';
 $string['pluginname'] = 'UCL Format';
 $string['privacy:metadata'] = 'UCL format does not store any personal data.';
