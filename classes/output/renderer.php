@@ -127,7 +127,7 @@ class renderer extends section_renderer {
     * @return string the TOC HTML
     */
     public function format_ucl_table_of_contents(): stdClass {
-        global $COURSE, $PAGE;
+        global $COURSE, $PAGE, $USER;
         $course = $COURSE;
 
         $activesection = optional_param('id', 0, PARAM_INT);
@@ -164,8 +164,10 @@ class renderer extends section_renderer {
                 }
 
                 // TODO - if mods?
-                if ($course->enablecompletion) {
-                    $s->progress = $this->format_ucl_section_progress($section);
+                if(!$USER->editing) {
+                    if ($course->enablecompletion) {
+                        $s->progress = $this->format_ucl_section_progress($section);
+                    }
                 }
 
                 // Add to template data.
@@ -319,7 +321,7 @@ class renderer extends section_renderer {
      *
      */
     public function render_content($widget): string {
-        global $PAGE, $COURSE;
+        global $PAGE, $COURSE, $USER;
         $data = $widget->export_for_template($this);
 
         // Redirect to edit page when creating a new section.
@@ -336,45 +338,66 @@ class renderer extends section_renderer {
 
         // TODO - this should be if editing.
         // Use it to hide edit controlls when not in edit mode.
-        $data->canedit = has_any_capability(['moodle/course:manageactivities'], $PAGE->context);
+        $data->isediting = $USER->editing;
 
+        // TODO - best practice - build into theme.
+        // This course contains unnamed sections - you can improve your course by giving each section a meanigful title.
+        // This course contains sections with one or less visbible actitivites - you can imporve your course by re-organising these.
+        // This section contains lots of activites without any structure - you can improve this by using lables to structure the content.
+        // etc
 
-        // Table of contents for ucl format.
-        $data->toc[] = $this->format_ucl_table_of_contents();
+        $layout = 'toc';
+        if ($layout == 'toc') {
+            // Table of contents for ucl format.
+            $data->toc[] = $this->format_ucl_table_of_contents();
 
-        // SHAME - get section 0 only for first page.
-        // Is there a better way to do this?
-        // TODO -  probably seperate function.
-        foreach ($data->sections as $section) {
-            if ($section->num == '0') {
-                $section->displayonesection = true; // Magic to stop accordians.
-                $data->firstsection = $section;
+            // SHAME - get section 0 only for first page.
+            // Is there a better way to do this?
+            // TODO -  probably seperate function.
+            foreach ($data->sections as $section) {
+                if ($section->num == '0') {
+                    $section->displayonesection = true; // Magic to stop accordians.
+                    $data->firstsection = $section;
 
-                // Section title.
-                $data->sectionname = $section->header->name;
+                    // Section title.
+                    $data->sectionname = $section->header->name;
 
-                // Add next visible section for next/previous section template.
-                if ($n = $this->format_ucl_next_section()) {
-                    $data->sectionselector = $n;
+                    // Add next visible section for next/previous section template.
+                    if ($n = $this->format_ucl_next_section()) {
+                        $data->sectionselector = $n;
+                    }
+                    if ($data->isediting) {
+                        // Edit.
+                        $params = [
+                            'id' => $section->id,
+                            'section' => $section->num,
+                            'sectionid' => $section->id,
+                            'sesskey' => sesskey(),
+                        ];
+                        $data->editurl = new moodle_url('/course/editsection.php', $params);
+                        $data->singleedit = true;
+                    }
                 }
             }
-        }
 
-        // Section name - we never want to output this as a link.
-        // Section 0 has a singlesection header.
-        // TODO - this all make better.
-        if ($data->singlesection->header) {
-            // Swap section 0 into special first section, with UCL meatdata.
-            $data->firstsection = $data->singlesection;
-            $data->singlesection = '';
-        }
-        $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
+            // Section name - we never want to output this as a link.
+            // Section 0 has a singlesection header.
+            // TODO - this all make better.
+            if ($data->singlesection->header) {
+                // Swap section 0 into special first section, with UCL meatdata.
+                $data->firstsection = $data->singlesection;
+                $data->singlesection = '';
+            }
+            $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
 
-        // Section actions - the edit section menu.
-        if ($data->singlesection) {
-            $data->sectionactions = $this->format_ucl_sectionactions($data);
-        }
+            // Section actions - the edit section menu.
+            if ($data->isediting) {
+                if ($data->singlesection) {
+                    $data->sectionactions = $this->format_ucl_sectionactions($data);
+                }
+            }
 
-        return $this->render_from_template('format_ucl/main', $data);
+            return $this->render_from_template('format_ucl/main', $data);
+        }
     }
 }

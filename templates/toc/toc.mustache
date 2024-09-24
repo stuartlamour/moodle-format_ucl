@@ -8,11 +8,12 @@
     {{/coursesection}}
     </ol>
 
-
-    {{#addsections}}
-    <a class="btn btn-outline-secondary btn-block add-section" href="{{{url}}}">
-      <i class="fa-solid fa-circle-plus mr-1"></i> Add new section
-    </a>
-    {{/addsections}}
+    {{#isediting}}
+      {{#addsections}}
+      <a class="btn btn-outline-secondary btn-block add-section" href="{{{url}}}">
+        <i class="fa-solid fa-circle-plus mr-1"></i> Add new section
+      </a>
+      {{/addsections}}
+    {{/isediting}}
 
 </nav>

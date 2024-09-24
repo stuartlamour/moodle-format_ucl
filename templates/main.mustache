@@ -172,11 +172,12 @@
 {{/newsectionredirect}}
 
 <div class="row pt-3">
+    {{#toc}}
+    {{! TODO - Mobile toc? }}
     <div class="d-none d-md-block col-md-3">
-        {{#toc}}
-            {{> format_ucl/toc/toc }}
-        {{/toc}}
+        {{> format_ucl/toc/toc }}
     </div>
+    {{/toc}}
 
     <div class="col">
         <div class="d-flex align-items-center">
@@ -188,7 +189,16 @@
             </div>
             {{/sectionactions}}
 
+            {{#singleedit}}
+                <div class="ml-auto">
+                    <a href="{{{editurl}}}">
+                        <i class="fa-regular fa-pen-to-square mr-2"></i>
+                        Edit
+                    </a>
+                </div>
+            {{/singleedit}}
         </div>
+
         {{> format_ucl/content }}
     </div>
 </div>
