@@ -199,7 +199,7 @@ class renderer extends section_renderer {
 
             $data->addsections = (object) [
                 'url' => new moodle_url('/course/changenumsections.php', $params),
-                'title' => $addstring,
+                'title' => "Add new section",
             ];
         }
         return $data;
@@ -383,12 +383,14 @@ class renderer extends section_renderer {
             // Section name - we never want to output this as a link.
             // Section 0 has a singlesection header.
             // TODO - this all make better.
-            if ($data->singlesection->header) {
+            if (isset($data->singlesection->header)) {
                 // Swap section 0 into special first section, with UCL meatdata.
                 $data->firstsection = $data->singlesection;
                 $data->singlesection = '';
             }
-            $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
+            if (isset($data->singlesection)) {
+                $data->sectionname .= $data->singlesection->singleheader->name; // TODO - why did i do this?
+            }
 
             // Section actions - the edit section menu.
             if ($data->isediting) {
