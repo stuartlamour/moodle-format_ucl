@@ -203,11 +203,23 @@
     </div>
 </div>
 
+{{! // SHAME -  We have to role our own section edit menu, so remove core.
+    // NB - there may be a way to get the core edit sections menu to work with the format.
+    // TODO - open to sugestions?
+}}
+{{#isediting}}
+    {{#js}}
+    require(['jquery'], function($) {
+        $('.header-action .section-actions').remove();
+    });
+    {{/js}}
+{{/isediting}}
 
+{{! Js for progress when not editing. }}
+{{^isediting}}
 {{#js}}
 require(['jquery'], function($) {
-    // $(".section-actions").appendTo("#ucl-section-actions");
-    // #destination-selector .collapse-list-link
+    $('.header-action .section-actions').remove();
 
     // Section progress.
     // Timeout so course-index can load.
@@ -293,8 +305,7 @@ require(['jquery'], function($) {
     }
 });
 {{/js}}
-
-<!-- listen for updates, and if i get one call template reload on toc? -->
+{{/isediting}}
 
 
 <style>

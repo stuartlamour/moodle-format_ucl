@@ -217,16 +217,22 @@ class renderer extends section_renderer {
         $format = course_get_format($course);
         $sections = $format->get_sections();
         $numsections = count($sections);
+        $context = context_course::instance($course->id);
+        $canviewhidden = has_capability('moodle/course:update', $context);
 
         // Iterate through sections to see if any are visible.
         $i = 1;
         while ($i <= $numsections) {
             $s = $sections[$i];
-            if ($s->visible) {
+            if ($s->visible || $canviewhidden) {
                 $n = new stdClass;
                 $n->nextname = $format->get_section_name($s);
                 $n->hasnext = true;
                 $n->nexturl =  new moodle_url('/course/section.php', ['id' => $s->id]);
+                // Section hidden from students.
+                if (!$s->visible) {
+                    $n->nexthidden = true;
+                }
                 return $n;
             }
             $i++;
@@ -324,9 +330,13 @@ class renderer extends section_renderer {
         global $PAGE, $COURSE, $USER;
         $data = $widget->export_for_template($this);
 
+        // Am i editing?
+        $data->isediting = $USER->editing;
+
         // Redirect to edit page when creating a new section.
         // TODO - make better.
-        // SHAME - This is pretty hardcore, outputs js redirect in template.
+        // SHAME - This is pretty hardcore, outputs js redirect in a template.
+        // NOTE - I'm not sure this is worse than moodle core redirect function.
         if ($data->newsectionredirect = optional_param('newsectionredirect', null, PARAM_BOOL)) {
             $data->newurl = new moodle_url('/course/editsection.php',
                 ['id' => $data->singlesection->id,
@@ -336,16 +346,27 @@ class renderer extends section_renderer {
             return $this->render_from_template('format_ucl/main', $data);
         }
 
-        // TODO - this should be if editing.
-        // Use it to hide edit controlls when not in edit mode.
-        $data->isediting = $USER->editing;
+        // Section name.
+        if (isset($data->singlesection->singleheader->name)) {
+            $data->sectionname = $data->singlesection->singleheader->name;
+        }
 
-        // TODO - best practice - build into theme.
+        // Section actions - the edit section menu.
+        if ($data->isediting) {
+            if (isset($data->singlesection)) {
+                $data->sectionactions = $this->format_ucl_sectionactions($data);
+            }
+        }
+
+         // TODO - best practice - build into format.
+
+        // More than 16 sections - not display well on laptops.
         // This course contains unnamed sections - you can improve your course by giving each section a meanigful title.
         // This course contains sections with one or less visbible actitivites - you can imporve your course by re-organising these.
         // This section contains lots of activites without any structure - you can improve this by using lables to structure the content.
         // etc
 
+        // TOC layout.
         $layout = 'toc';
         if ($layout == 'toc') {
             // Table of contents for ucl format.
@@ -354,7 +375,8 @@ class renderer extends section_renderer {
             // SHAME - get section 0 only for first page.
             // Is there a better way to do this?
             // TODO -  probably seperate function.
-            foreach ($data->sections as $section) {
+            if ($data->sections) {
+                $section = $data->sections['0'];
                 if ($section->num == '0') {
                     $section->displayonesection = true; // Magic to stop accordians.
                     $data->firstsection = $section;
@@ -362,9 +384,9 @@ class renderer extends section_renderer {
                     // Section title.
                     $data->sectionname = $section->header->name;
 
-                    // Add next visible section for next/previous section template.
-                    if ($n = $this->format_ucl_next_section()) {
-                        $data->sectionselector = $n;
+                    // Add next section for next/previous section template.
+                    if ($next = $this->format_ucl_next_section()) {
+                        $data->sectionselector = $next;
                     }
 
                     // Single section editing.
@@ -380,25 +402,9 @@ class renderer extends section_renderer {
                         $data->editurl = new moodle_url('/course/editsection.php', $params);
                         $data->singleedit = true;
                     }
-                }
-            }
+                    // Set first section to enable adding ucl metadata.
+                    $data->firstsection = $section;
 
-            // Section name - we never want to output this as a link.
-            // Section 0 has a singlesection header, other sections don't.
-            // TODO - this all make better.
-            if (isset($data->singlesection->header)) {
-                // Swap section 0 into special first section, with UCL meatdata.
-                $data->firstsection = $data->singlesection;
-                $data->singlesection = '';
-            }
-            if (isset($data->singlesection)) {
-                $data->sectionname = $data->singlesection->singleheader->name; // TODO - why did i do this?
-            }
-
-            // Section actions - the edit section menu.
-            if ($data->isediting) {
-                if (isset($data->singlesection)) {
-                    $data->sectionactions = $this->format_ucl_sectionactions($data);
                 }
             }
 
