@@ -387,15 +387,21 @@ class renderer extends section_renderer {
             return $this->render_from_template('format_ucl/main', $data);
         }
 
-        // Section name.
-        if (isset($data->singlesection->singleheader->name)) {
-            $data->sectionname = $data->singlesection->singleheader->name;
-        }
+        // Single section specific data.
+        if (isset($data->singlesection)) {
 
-        // Section actions - the edit section menu.
-        if ($data->isediting) {
-            if (isset($data->singlesection)) {
+            // Section name.
+            $data->sectionname = $data->singlesection->singleheader->name;
+
+            // Section actions - the edit section menu.
+            if ($data->isediting) {
                 $data->sectionactions = $this->format_ucl_sectionactions($data);
+            }
+
+            // In previous/next nav we want the first section to use the course url, not the section url.
+            // SHAME - Overwrite sectionnavigation previousurl.
+            if ($data->singlesection->num == 1) {
+                $data->sectionnavigation->previousurl = new moodle_url('/course/view.php', ['id' => $COURSE->id]);
             }
         }
 
