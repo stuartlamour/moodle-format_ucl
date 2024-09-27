@@ -391,17 +391,23 @@ class renderer extends section_renderer {
         if (isset($data->singlesection)) {
 
             // Section name.
-            $data->sectionname = $data->singlesection->singleheader->name;
-
-            // Section actions - the edit section menu.
-            if ($data->isediting) {
-                $data->sectionactions = $this->format_ucl_sectionactions($data);
+            if(isset($data->singlesection->singleheader->name)) {
+                $data->sectionname = $data->singlesection->singleheader->name;
+            }
+            // This only happens for the first section, when veiwed as single section.
+            if(isset($data->singlesection->header->name)) {
+                $data->sectionname = $data->singlesection->header->name;
             }
 
             // In previous/next nav we want the first section to use the course url, not the section url.
             // SHAME - Overwrite sectionnavigation previousurl.
             if ($data->singlesection->num == 1) {
                 $data->sectionnavigation->previousurl = new moodle_url('/course/view.php', ['id' => $COURSE->id]);
+            }
+
+            // Section actions - the edit section menu.
+            if ($data->isediting) {
+                $data->sectionactions = $this->format_ucl_sectionactions($data);
             }
         }
 
