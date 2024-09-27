@@ -318,6 +318,47 @@ class renderer extends section_renderer {
     }
 
     /**
+     * Return data for first section.
+     *
+     * @param $data
+     *
+     */
+    public function format_ucl_firstsection($data): stdClass {
+        $section = $data->sections['0'];
+        // TODO - does this actually improve speed?
+        $data->sections = ''; // Remove the rest of the data, not needed.
+        if ($section->num == '0') {
+            $section->displayonesection = true; // Magic to stop accordians.
+            $data->firstsection = $section;
+
+            // Section title.
+            $data->sectionname = $section->header->name;
+
+            // Add next section for next/previous section template.
+            if ($next = $this->format_ucl_next_section()) {
+                $data->sectionselector = $next;
+            }
+
+            // Single section editing.
+            // TODO - make better.
+            if ($data->isediting) {
+                // Edit.
+                $params = [
+                    'id' => $section->id,
+                    'section' => $section->num,
+                    'sectionid' => $section->id,
+                    'sesskey' => sesskey(),
+                ];
+                $data->editurl = new moodle_url('/course/editsection.php', $params);
+                $data->singleedit = true;
+            }
+            // Set first section to enable adding ucl metadata.
+            $data->firstsection = $section;
+        }
+        return $data;
+    }
+
+    /**
      * Magic so format can use its own templates.
      *
      * Renders the content widget.
@@ -358,57 +399,28 @@ class renderer extends section_renderer {
             }
         }
 
-         // TODO - best practice - build into format.
+        // TOC layout.
+        $layout = 'toc';
+        if ($layout == 'toc') {
+
+            // Table of contents for ucl format.
+            $data->toc[] = $this->format_ucl_table_of_contents();
+
+            // Get section 0 only for first page.
+            // SHAME - Is there a better way to do this?
+            if ($data->sections) {
+                $data = $this->format_ucl_firstsection($data);
+            }
+
+            return $this->render_from_template('format_ucl/main', $data);
+        }
+
+        // TODO - best practice - build into format.
 
         // More than 16 sections - not display well on laptops.
         // This course contains unnamed sections - you can improve your course by giving each section a meanigful title.
         // This course contains sections with one or less visbible actitivites - you can imporve your course by re-organising these.
         // This section contains lots of activites without any structure - you can improve this by using lables to structure the content.
         // etc
-
-        // TOC layout.
-        $layout = 'toc';
-        if ($layout == 'toc') {
-            // Table of contents for ucl format.
-            $data->toc[] = $this->format_ucl_table_of_contents();
-
-            // SHAME - get section 0 only for first page.
-            // Is there a better way to do this?
-            // TODO -  probably seperate function.
-            if ($data->sections) {
-                $section = $data->sections['0'];
-                if ($section->num == '0') {
-                    $section->displayonesection = true; // Magic to stop accordians.
-                    $data->firstsection = $section;
-
-                    // Section title.
-                    $data->sectionname = $section->header->name;
-
-                    // Add next section for next/previous section template.
-                    if ($next = $this->format_ucl_next_section()) {
-                        $data->sectionselector = $next;
-                    }
-
-                    // Single section editing.
-                    // TODO - make better.
-                    if ($data->isediting) {
-                        // Edit.
-                        $params = [
-                            'id' => $section->id,
-                            'section' => $section->num,
-                            'sectionid' => $section->id,
-                            'sesskey' => sesskey(),
-                        ];
-                        $data->editurl = new moodle_url('/course/editsection.php', $params);
-                        $data->singleedit = true;
-                    }
-                    // Set first section to enable adding ucl metadata.
-                    $data->firstsection = $section;
-
-                }
-            }
-
-            return $this->render_from_template('format_ucl/main', $data);
-        }
     }
 }
